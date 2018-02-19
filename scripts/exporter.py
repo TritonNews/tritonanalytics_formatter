@@ -1,3 +1,6 @@
+"""
+Exports statistics & data in csv/*.csv files to a MongoDB instance.
+"""
 from pymongo import MongoClient
 
 import os
@@ -6,13 +9,11 @@ import glob
 import pandas as pd
 import argparse
 
-DATA_FOLDER = 'data'
-
 def process(db):
   # Get a list of all data files
   logging.info("Reading CSV files ...")
-  fb_page_files = glob.glob(os.path.join(DATA_FOLDER, "fb-page-*.csv"))
-  fb_posts_files = glob.glob(os.path.join(DATA_FOLDER, "fb-posts-*.csv"))
+  fb_page_files = glob.glob(os.path.join('csv', "fb-page-*.csv"))
+  fb_posts_files = glob.glob(os.path.join('csv', "fb-posts-*.csv"))
 
   # Add all page data files to the database
   logging.info("Adding page analytics to database ...")
