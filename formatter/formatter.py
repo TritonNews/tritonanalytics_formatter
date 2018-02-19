@@ -4,6 +4,7 @@ import os
 import logging
 import glob
 import pandas as pd
+import argparse
 
 DATA_FOLDER = 'data'
 
@@ -23,41 +24,41 @@ def process(db):
   for file in fb_posts_files:
     process_fb_file(db.fbposts, file, 'Post ID')
 
-def process_fb_file(coll, file, row_id_column_header):
-  row_id_doc_field = niceify_column_header(row_id_column_header)
-
+def process_fb_file(coll, file, unique_column_header):
   df = pd.read_csv(file)
   df = df.drop(df.index[[0, 1]]).fillna(0)
 
   for row_index, row in df.iterrows():
-    doc = coll.find_one({ row_id_doc_field : row[row_id_column_header] })
+    doc = coll.find_one({ unique_column_header : row[unique_column_header] })
     if doc:
-      logging.info("Database already has record for row {0}='{1}'.".format(row_id_column_header, row[row_id_column_header]))
+      logging.info("Database already has record for row {0}='{1}'.".format(unique_column_header, row[unique_column_header]))
     else:
-      logging.info("No record exists for row {0}='{1}'.".format(row_id_column_header, row[row_id_column_header]))
+      logging.info("No record exists for row {0}='{1}'.".format(unique_column_header, row[unique_column_header]))
 
       # Build document to be inserted (preserve all columns under prettified field names)
       new_doc = {}
       for column in df:
-        field_name = niceify_column_header(column)
-        if '.' not in field_name: # Discard columns with banned symbols in their header
-          new_doc[field_name] = row[column]
+        if '.' not in column: # Discard columns with banned symbols in their header
+          new_doc[column] = row[column]
 
       logging.info("Inserting into database ...")
       coll.insert_one(new_doc)
       logging.info("Insertion succsesful.")
 
-def niceify_column_header(column_header):
-  return column_header.replace(' ', '_').replace('-', '_').lower()
-
 def main():
+  # Setup argument parser
+  parser = argparse.ArgumentParser(description='Script that moves data from CSV files to MongoDB')
+  parser.add_argument('db', help='URI of MongoDB used to hold analytics data')
+  args = parser.parse_args()
+
+  # Setup logging
   logging.basicConfig(format='[%(asctime)s] [%(levelname)s] %(message)s',level=logging.INFO)
 
+  # Login to database
   logging.info("Logging in to database ...")
-  db_uri = os.environ.get("TRITON_ANALYTICS_MONGODB")
-  db = MongoClient(db_uri).get_database("tritonanalytics")
-  logging.info("Login successful.")
+  db = MongoClient(args.db).get_database("tritonanalytics")
 
+  # Begin processing CSV files and exporting them
   process(db)
 
 if __name__ == '__main__':
