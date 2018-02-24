@@ -1,5 +1,6 @@
 """
 Sanitizes data in the MongoDB instance periodically: fills out missing columns, etc.
+Meant to run periodically as a cron job on a server
 """
 from pymongo import MongoClient
 
@@ -62,13 +63,11 @@ def main():
   db_uri = os.environ.get("TRITON_ANALYTICS_MONGODB")
   db = MongoClient(db_uri).get_database("tritonanalytics")
 
-  # Sanitize database every 15 minutes
-  while True:
-    logging.info("Sanitizing database ...")
-    start_time = time.time()
-    sanitize(db)
-    logging.info("Sanitization took {0:.2f} seconds.".format(time.time() - start_time))
-    time.sleep(900)
+  # Sanitize database
+  logging.info("Sanitizing database ...")
+  start_time = time.time()
+  sanitize(db)
+  logging.info("Sanitization took {0:.2f} seconds.".format(time.time() - start_time))
 
 
 if __name__ == '__main__':

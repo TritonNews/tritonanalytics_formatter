@@ -47,16 +47,12 @@ def process_fb_file(coll, file, unique_column_header):
       logging.info("Insertion succsesful.")
 
 def main():
-  # Setup argument parser
-  parser = argparse.ArgumentParser(description='Script that moves data from CSV files to MongoDB')
-  parser.add_argument('db', help='URI of MongoDB used to hold analytics data')
-  args = parser.parse_args()
-
   # Setup logging
   logging.basicConfig(format='[%(asctime)s] [%(levelname)s] %(message)s',level=logging.INFO)
 
   # Login to database
   logging.info("Logging in to database ...")
+  db_uri = os.environ.get("TRITON_ANALYTICS_MONGODB")
   db = MongoClient(args.db).get_database("tritonanalytics")
 
   # Begin processing CSV files and exporting them
