@@ -7,13 +7,15 @@ import os
 import logging
 import glob
 import pandas as pd
-import argparse
+import time
 
-def process(db):
+CSV_FOLDER = 'csv'
+
+def export_to(db):
   # Get a list of all data files
   logging.info("Reading CSV files ...")
-  fb_page_files = glob.glob(os.path.join('csv', "fb-page-*.csv"))
-  fb_posts_files = glob.glob(os.path.join('csv', "fb-posts-*.csv"))
+  fb_page_files = glob.glob(os.path.join(CSV_FOLDER, "fb-page-*.csv"))
+  fb_posts_files = glob.glob(os.path.join(CSV_FOLDER, "fb-posts-*.csv"))
 
   # Add all page data files to the database
   logging.info("Adding page analytics to database ...")
@@ -52,11 +54,13 @@ def main():
 
   # Login to database
   logging.info("Logging in to database ...")
-  db_uri = os.environ.get("TRITON_ANALYTICS_MONGODB")
-  db = MongoClient(args.db).get_database("tritonanalytics")
+  db = MongoClient(os.environ.get("TRITON_ANALYTICS_MONGODB")).get_database("tritonanalytics")
 
   # Begin processing CSV files and exporting them
-  process(db)
+  logging.info("Exporting to database ...")
+  start_time = time.time()
+  export_to(db)
+  logging.info("Exporting took {0:.2f} seconds.".format(time.time() - start_time))
 
 if __name__ == '__main__':
   main()
